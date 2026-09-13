@@ -1,0 +1,19 @@
+# Perfil de desarrollo local.
+#
+# Mientras el tenant de identidad no exista, el BFF no puede sacar la empresa
+# de un token. En este perfil, y SOLO en este, acepta que el contexto llegue
+# por cabeceras de desarrollo (X-Dev-Oid, X-Dev-Company-Id, X-Dev-Roles) y,
+# si no vienen, usa el contexto de abajo.
+#
+# En cuanto HU-05 configure el resource server, esto deja de usarse: el
+# contexto pasa a salir del JWT y estas cabeceras se ignoran.
+digitalfix:
+  contexto:
+    modo-desarrollo: true
+    oid-por-defecto: dev-oid-0001
+    empresa-por-defecto: 1
+    roles-por-defecto: Admin
+
+logging:
+  level:
+    cl.duoc.digitalfix.bff: DEBUG

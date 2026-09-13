@@ -1,0 +1,9 @@
+digitalfix:
+  microservicios:
+    catalogo:
+      url: http://localhost:9999
+  contexto:
+    modo-desarrollo: true
+    oid-por-defecto: test-oid
+    empresa-por-defecto: 1
+    roles-por-defecto: Admin
