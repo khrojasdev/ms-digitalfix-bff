@@ -6,6 +6,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://login.microsoftonline.com/TENANT_ID_PENDIENTE/v2.0
+          audiences: api://CLIENT_ID_PENDIENTE #hay que modificarlo despues!!!!!!
 
 server:
   port: ${PUERTO:8080}
