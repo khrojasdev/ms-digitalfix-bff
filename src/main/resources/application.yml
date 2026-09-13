@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: ms-digitalfix-bff
+
+server:
+  port: ${PUERTO:8080}
+
+# Direcciones de los microservicios de dominio. En local apuntan a localhost;
+# en el despliegue se sobreescriben por variables de entorno, nunca se tocan
+# estos valores en el repositorio.
+digitalfix:
+  microservicios:
+    catalogo:
+      url: ${CATALOGO_URL:http://localhost:8082}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 5000
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{correlacion:-sin-correlacion}] %logger{36} - %msg%n"
