@@ -1,8 +1,11 @@
 package cl.duoc.digitalfix.bff.cliente;
 
+import java.time.Duration;
+
 import cl.duoc.digitalfix.bff.contexto.CabecerasDeContexto;
 import cl.duoc.digitalfix.bff.contexto.ContextoUsuario;
 import cl.duoc.digitalfix.bff.contexto.ContextoUsuarioHolder;
+import cl.duoc.digitalfix.bff.error.ServicioNoDisponible;
 import cl.duoc.digitalfix.bff.error.SolicitudInvalida;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -26,14 +30,20 @@ import org.springframework.web.client.RestClient;
  *     escriben de cero aqui.
  *  2. Los codigos de error del catalogo se devuelven tal cual. Si el catalogo
  *     responde 404 porque el recurso es de otra empresa, el frontend tiene que
- *     ver ese 404. Convertirlo en 500 escondería justo lo que hay que ver.
+ *     ver ese 404. Convertirlo en 500 esconderia justo lo que hay que ver.
  */
 @Component
 public class ClienteCatalogo {
 
     private static final Logger log = LoggerFactory.getLogger(ClienteCatalogo.class);
 
+    private static final String NOMBRE = "catalogo";
+    private static final String AVISO =
+            "El catalogo no esta disponible en este momento. Intenta de nuevo en unos segundos.";
+
     private final RestClient cliente;
+    private final Cortacircuitos cortacircuitos =
+            new Cortacircuitos(3, Duration.ofSeconds(15));
 
     public ClienteCatalogo(RestClient clienteCatalogo) {
         this.cliente = clienteCatalogo;
@@ -47,10 +57,25 @@ public class ClienteCatalogo {
             throw new SolicitudInvalida("No hay contexto de usuario para esta peticion.");
         }
 
+        if (cortacircuitos.estaAbierto()) {
+            // no se intenta siquiera: el catalogo acaba de fallar varias veces
+            // seguidas y cada intento cuesta un timeout completo
+            throw new ServicioNoDisponible(NOMBRE, AVISO, null);
+        }
+
         log.debug("catalogo <- {} {} empresa={}", metodo, ruta, contexto.empresaId());
 
-        return Reintentos.conUnReintento(metodo, () -> ejecutar(metodo, ruta, parametros, cuerpo,
-                                                                contexto));
+        try {
+            ResponseEntity<String> respuesta = Reintentos.conUnReintento(
+                    metodo, () -> ejecutar(metodo, ruta, parametros, cuerpo, contexto));
+            cortacircuitos.registrarExito();
+            return respuesta;
+        } catch (ResourceAccessException e) {
+            // no contesto: esta caido o tardo mas de lo permitido
+            cortacircuitos.registrarFallo();
+            log.warn("el catalogo no respondio a {} {}: {}", metodo, ruta, e.getMessage());
+            throw new ServicioNoDisponible(NOMBRE, AVISO, e);
+        }
     }
 
     private ResponseEntity<String> ejecutar(HttpMethod metodo, String ruta,
