@@ -43,7 +43,7 @@ class ResolutorPorJwtTest {
     void resuelveLaEmpresaDesdeUsuarios() {
         autenticarCon("oid-abc");
         when(usuarios.buscarPorOid(eq("oid-abc"), anyString()))
-                .thenReturn(new PerfilDeUsuario("Chris", "chris@duocuc.cl", "ADMIN", 7L, true));
+                .thenReturn(new PerfilDeUsuario("Chris", "chris@duocuc.cl", "ADMIN", 7L, "ElectroRed", true));
 
         ContextoUsuario contexto = resolutor.resolver(peticion);
 
@@ -82,7 +82,7 @@ class ResolutorPorJwtTest {
     void desactivadoDevuelveNulo() {
         autenticarCon("oid-fuera");
         when(usuarios.buscarPorOid(anyString(), anyString()))
-                .thenReturn(new PerfilDeUsuario("Ex", "ex@duocuc.cl", "SUPERVISOR", 3L, false));
+                .thenReturn(new PerfilDeUsuario("Ex", "ex@duocuc.cl", "SUPERVISOR", 3L, "ElectroRed", false));
 
         assertThat(resolutor.resolver(peticion)).isNull();
     }

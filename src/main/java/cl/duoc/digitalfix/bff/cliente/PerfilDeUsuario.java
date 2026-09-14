@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PerfilDeUsuario(String name, String email, String role,
-                              Long companyId, Boolean active) {
+                              Long companyId, String companyName, Boolean active) {
 
     public boolean estaActivo() {
         return Boolean.TRUE.equals(active);
