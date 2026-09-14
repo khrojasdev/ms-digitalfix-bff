@@ -1,6 +1,11 @@
 spring:
   application:
     name: ms-digitalfix-bff
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.microsoftonline.com/TENANT_ID_PENDIENTE/v2.0
 
 server:
   port: ${PUERTO:8080}
