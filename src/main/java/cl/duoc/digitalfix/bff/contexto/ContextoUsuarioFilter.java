@@ -1,6 +1,7 @@
 package cl.duoc.digitalfix.bff.contexto;
 
 import java.io.IOException;
+import java.util.List;
 
 import cl.duoc.digitalfix.bff.web.dto.RespuestaError;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,17 +26,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * Actuator queda fuera a proposito, porque lo consultan las sondas del
  * despliegue, que no llevan token.
+ *
+ * Los resolutores se prueban en orden. Primero el del token, que es el camino
+ * real; despues el de desarrollo, que solo responde en el perfil local. El
+ * primero que devuelve algo, manda.
  */
 @Component
 public class ContextoUsuarioFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ContextoUsuarioFilter.class);
 
-    private final ResolutorDeContexto resolutor;
+    private final List<ResolutorDeContexto> resolutores;
     private final ObjectMapper json;
 
-    public ContextoUsuarioFilter(ResolutorDeContexto resolutor, ObjectMapper json) {
-        this.resolutor = resolutor;
+    public ContextoUsuarioFilter(List<ResolutorDeContexto> resolutores, ObjectMapper json) {
+        this.resolutores = resolutores;
         this.json = json;
     }
 
@@ -48,7 +53,7 @@ public class ContextoUsuarioFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest peticion, HttpServletResponse respuesta,
                                     FilterChain cadena) throws ServletException, IOException {
-        ContextoUsuario contexto = resolutor.resolver(peticion);
+        ContextoUsuario contexto = resolver(peticion);
 
         if (contexto == null || contexto.empresaId() == null) {
             log.debug("peticion a {} sin contexto resoluble", peticion.getRequestURI());
@@ -64,6 +69,16 @@ public class ContextoUsuarioFilter extends OncePerRequestFilter {
             // la empresa de esta peticion
             ContextoUsuarioHolder.limpiar();
         }
+    }
+
+    private ContextoUsuario resolver(HttpServletRequest peticion) {
+        for (ResolutorDeContexto resolutor : resolutores) {
+            ContextoUsuario contexto = resolutor.resolver(peticion);
+            if (contexto != null && contexto.empresaId() != null) {
+                return contexto;
+            }
+        }
+        return null;
     }
 
     private void responderNoAutorizado(HttpServletRequest peticion, HttpServletResponse respuesta)

@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class AuthorizationMatrixTests {
 
     @Autowired
@@ -44,16 +46,28 @@ class AuthorizationMatrixTests {
                 .andExpect(status().isForbidden()); // Bloqueado por falta de privilegios
     }
 
+    // La ruta real del catálogo es /api/catalog/**, en inglés como el resto del
+    // contrato. Los casos de abajo apuntaban a /api/catalogo/**, que no la
+    // toca: pasaban por el fallback y no probaban la regla que dicen probar.
     @Test
-    void endpointCatalogo_accesoPermitidoTecnico() throws Exception {
-        mockMvc.perform(get("/api/catalogo/items")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
-                .andExpect(status().isNotFound()); // Pasa el filtro de seguridad
+    void endpointCatalogo_accesoPermitidoSupervisor() throws Exception {
+        // 503 y no 404: pasa la seguridad, llega al proxy y el catálogo no está
+        // levantado en las pruebas. Lo que importa aquí es que no sea 401 ni 403.
+        mockMvc.perform(get("/api/catalog/services")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void endpointCatalogo_accesoPermitidoAuditor() throws Exception {
+        mockMvc.perform(get("/api/catalog/services")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test
     void endpointCatalogo_accesoDenegadoUsuarioSinRol() throws Exception {
-        mockMvc.perform(get("/api/catalogo/items")
+        mockMvc.perform(get("/api/catalog/services")
                         .with(jwt())) // JWT válido pero sin authorities
                 .andExpect(status().isForbidden());
     }

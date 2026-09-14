@@ -9,6 +9,7 @@ import cl.duoc.digitalfix.bff.error.ServicioNoDisponible;
 import cl.duoc.digitalfix.bff.error.SolicitudInvalida;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
@@ -45,8 +46,10 @@ public class ClienteCatalogo {
     private final Cortacircuitos cortacircuitos =
             new Cortacircuitos(3, Duration.ofSeconds(15));
 
-    public ClienteCatalogo(RestClient clienteCatalogo) {
-        this.cliente = clienteCatalogo;
+    // desde que hay mas de un RestClient en el contexto hay que decir cual:
+    // por tipo ya no es suficiente
+    public ClienteCatalogo(@Qualifier("restClientCatalogo") RestClient restClientCatalogo) {
+        this.cliente = restClientCatalogo;
     }
 
     public ResponseEntity<String> llamar(HttpMethod metodo, String ruta,

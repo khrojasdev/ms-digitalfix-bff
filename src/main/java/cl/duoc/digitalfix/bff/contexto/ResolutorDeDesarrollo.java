@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -16,10 +17,11 @@ import org.springframework.util.StringUtils;
  * es true, que unicamente esta activado en el perfil local: en cualquier otro
  * entorno devuelve null y la peticion termina en 401.
  *
- * Esto no es una puerta trasera disimulada, es andamio con fecha de retiro:
- * se borra entero cuando HU-05 configure el resource server.
+ * Corre DESPUES de ResolutorPorJwt: con un token valido nunca llega a actuar.
+ * Queda solo para poder probar el BFF sin pasar por el navegador.
  */
 @Component
+@Order(100)
 public class ResolutorDeDesarrollo implements ResolutorDeContexto {
 
     private final PropiedadesContexto propiedades;

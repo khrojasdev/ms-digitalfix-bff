@@ -38,6 +38,20 @@ public class ClientesHttpConfig {
                 .build();
     }
 
+    /**
+     * Cliente hacia ms-digitalfix-usuarios. Se usa para resolver la empresa de
+     * quien llama, asi que su timeout tiene que ser corto: esta llamada esta en
+     * el camino de TODAS las peticiones, y si se demora, todo se demora.
+     */
+    @Bean
+    public RestClient restClientUsuarios(PropiedadesMicroservicios propiedades) {
+        PropiedadesMicroservicios.Destino destino = propiedades.getUsuarios();
+        return RestClient.builder()
+                .baseUrl(destino.getUrl())
+                .requestFactory(fabrica(destino))
+                .build();
+    }
+
     private ClientHttpRequestFactory fabrica(PropiedadesMicroservicios.Destino destino) {
         ClientHttpRequestFactorySettings ajustes = ClientHttpRequestFactorySettings.DEFAULTS
                 .withConnectTimeout(Duration.ofMillis(destino.getTimeoutConexionMs()))

@@ -19,6 +19,12 @@ digitalfix:
       url: ${CATALOGO_URL:http://localhost:8082}
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 5000
+    # Se consulta en cada peticion para saber de que empresa es quien llama,
+    # asi que su espera es mas corta que la del resto.
+    usuarios:
+      url: ${USUARIOS_URL:http://localhost:8081}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 3000
 
 management:
   endpoints:

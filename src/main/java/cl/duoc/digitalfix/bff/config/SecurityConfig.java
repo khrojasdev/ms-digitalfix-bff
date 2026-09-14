@@ -54,8 +54,11 @@ public class SecurityConfig {
                         // 3. Módulos de Gestión
                         .requestMatchers("/api/dashboard/**", "/api/reports/**").hasAnyRole("ADMIN", "SUPERVISOR")
 
-                        // 4. Módulos Operativos (Agregamos CLIENTE para evitar el segundo 403)
-                        .requestMatchers("/api/catalog/**", "/api/repuestos/**", "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "TECNICO", "CLIENTE")
+                        // 4. Módulos Operativos.
+                        // Los roles son los cuatro del caso: no existe TECNICO.
+                        // Dejarlo aquí no abría nada, pero sí dejaba fuera a AUDITOR,
+                        // que necesita leer el catálogo para revisar órdenes.
+                        .requestMatchers("/api/catalog/**", "/api/repuestos/**", "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR")
 
                         // 5. Fallback
                         .anyRequest().authenticated()

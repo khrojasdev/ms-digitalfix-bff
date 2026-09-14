@@ -13,12 +13,22 @@ public class PropiedadesMicroservicios {
 
     private Destino catalogo = new Destino();
 
+    private Destino usuarios = new Destino();
+
     public Destino getCatalogo() {
         return catalogo;
     }
 
     public void setCatalogo(Destino catalogo) {
         this.catalogo = catalogo;
+    }
+
+    public Destino getUsuarios() {
+        return usuarios;
+    }
+
+    public void setUsuarios(Destino usuarios) {
+        this.usuarios = usuarios;
     }
 
     public static class Destino {
