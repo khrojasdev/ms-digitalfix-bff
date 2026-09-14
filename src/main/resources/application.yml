@@ -5,9 +5,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.microsoftonline.com/TENANT_ID_PENDIENTE/v2.0
-          audiences: api://CLIENT_ID_PENDIENTE #hay que modificarlo despues!!!!!!
-
+          issuer-uri: https://login.microsoftonline.com/05e8b5a7-b9e0-40d2-9d95-1a1ee52e838a/v2.0
+          audiences: 7bcc8174-7f46-4510-b2eb-c52ac3353692
 server:
   port: ${PUERTO:8080}
 
