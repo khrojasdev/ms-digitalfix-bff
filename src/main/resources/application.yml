@@ -20,6 +20,17 @@ digitalfix:
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 5000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+
 logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} %-5level [%X{correlacion:-sin-correlacion}] %logger{36} - %msg%n"
