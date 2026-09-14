@@ -35,12 +35,25 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
+                        // 1. Endpoints públicos o de salud
+                        .requestMatchers("/actuator/health").permitAll()
+
+                        // 2. Módulo de Auditoría (Acceso estrictamente gerencial/administrador)
+                        .requestMatchers("/api/audit/**").hasRole("ADMIN")
+
+                        // 3. Módulos de Gestión (Supervisores y Administradores)
+                        .requestMatchers("/api/dashboard/**", "/api/reports/**").hasAnyRole("ADMIN", "SUPERVISOR")
+
+                        // 4. Módulos Operativos (Técnicos de terreno y roles superiores)
+                        .requestMatchers("/api/catalogo/**", "/api/repuestos/**", "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "TECNICO")
+
+                        // 5. Fallback: Cualquier otra ruta requiere estar autenticado como mínimo
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder())
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter()) // <-- Nuevo convertidor
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
                         .authenticationEntryPoint(unauthorizedHandler)
                         .accessDeniedHandler(accessDeniedHandler)
