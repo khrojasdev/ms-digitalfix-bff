@@ -30,7 +30,6 @@ import org.springframework.web.client.RestClient;
 public class ClienteUsuarios {
 
     private static final Logger log = LoggerFactory.getLogger(ClienteUsuarios.class);
-
     private static final Duration VIGENCIA = Duration.ofSeconds(60);
 
     private final RestClient cliente;
@@ -40,11 +39,6 @@ public class ClienteUsuarios {
         this.cliente = restClientUsuarios;
     }
 
-    /**
-     * @param oid         identificador de la persona en el tenant
-     * @param tokenCrudo  el mismo token que llego al BFF; usuarios tambien lo exige
-     * @return el perfil, o null si no existe, esta desactivado o usuarios no responde
-     */
     public PerfilDeUsuario buscarPorOid(String oid, String tokenCrudo) {
         Entrada guardada = cache.get(oid);
         if (guardada != null && guardada.vigente()) {
@@ -53,8 +47,7 @@ public class ClienteUsuarios {
 
         PerfilDeUsuario perfil = pedir(oid, tokenCrudo);
 
-        // tambien se guarda el null: si alguien que no esta dado de alta insiste,
-        // no tiene sentido preguntar por el en cada peticion
+        // Se guarda en caché por 60 segundos
         cache.put(oid, new Entrada(perfil, Instant.now().plus(VIGENCIA)));
         return perfil;
     }
@@ -66,19 +59,31 @@ public class ClienteUsuarios {
                     .headers(cabeceras -> autorizar(cabeceras, tokenCrudo))
                     .retrieve()
                     .onStatus(estado -> estado.value() == 404, (peticion, respuesta) -> {
-                        // todavia no esta dado de alta en APP_USER: no es un fallo
-                        // del sistema, es una persona sin empresa asignada
                         throw new SinPerfil();
                     })
                     .body(PerfilDeUsuario.class);
         } catch (SinPerfil e) {
-            log.info("el oid {} no tiene perfil en usuarios", oid);
-            return null;
+            log.info("El OID {} no existe. Iniciando aprovisionamiento automático (JIT)...", oid);
+            return autoAprovisionar(oid, tokenCrudo);
         } catch (ResourceAccessException e) {
             log.warn("usuarios no respondio al resolver el oid {}: {}", oid, e.getMessage());
             return null;
         } catch (RuntimeException e) {
             log.warn("no se pudo resolver el oid {} contra usuarios: {}", oid, e.getMessage());
+            return null;
+        }
+    }
+
+    private PerfilDeUsuario autoAprovisionar(String oid, String tokenCrudo) {
+        try {
+            // Llama al endpoint de login que ya tenías preparado en ms-usuarios
+            return cliente.post()
+                    .uri("/api/users/login")
+                    .headers(cabeceras -> autorizar(cabeceras, tokenCrudo))
+                    .retrieve()
+                    .body(PerfilDeUsuario.class);
+        } catch (Exception e) {
+            log.error("Fallo el auto-aprovisionamiento JIT para el OID {}: {}", oid, e.getMessage());
             return null;
         }
     }
@@ -89,7 +94,6 @@ public class ClienteUsuarios {
         }
     }
 
-    /** Se usa solo para limpiar entre pruebas. */
     public void olvidarTodo() {
         cache.clear();
     }
@@ -100,7 +104,6 @@ public class ClienteUsuarios {
         }
     }
 
-    /** Corta el flujo sin cargar una traza: un 404 aqui es un caso esperado. */
     private static final class SinPerfil extends RuntimeException {
         private SinPerfil() {
             super(null, null, false, false);
