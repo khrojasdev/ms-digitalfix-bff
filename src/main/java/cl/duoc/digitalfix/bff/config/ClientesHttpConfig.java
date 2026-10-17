@@ -58,4 +58,19 @@ public class ClientesHttpConfig {
                 .withReadTimeout(Duration.ofMillis(destino.getTimeoutLecturaMs()));
         return ClientHttpRequestFactories.get(ajustes);
     }
+    @Bean
+    public org.springframework.web.client.RestClient restClientReportes(PropiedadesMicroservicios propiedades, org.springframework.web.client.RestClient.Builder builder) {
+        PropiedadesMicroservicios.Destino dest = propiedades.getReportes();
+        return builder.baseUrl(dest.getUrl())
+                .requestFactory(crearRequestFactory(dest.getTimeoutConexionMs(), dest.getTimeoutLecturaMs()))
+                .build();
+    }
+
+    @Bean
+    public org.springframework.web.client.RestClient restClientAuditoria(PropiedadesMicroservicios propiedades, org.springframework.web.client.RestClient.Builder builder) {
+        PropiedadesMicroservicios.Destino dest = propiedades.getAuditoria();
+        return builder.baseUrl(dest.getUrl())
+                .requestFactory(crearRequestFactory(dest.getTimeoutConexionMs(), dest.getTimeoutLecturaMs()))
+                .build();
+    }
 }

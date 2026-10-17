@@ -19,12 +19,19 @@ digitalfix:
       url: ${CATALOGO_URL:http://localhost:8082}
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 5000
-    # Se consulta en cada peticion para saber de que empresa es quien llama,
-    # asi que su espera es mas corta que la del resto.
     usuarios:
       url: ${USUARIOS_URL:http://localhost:8081}
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 3000
+    # NUEVOS MICROSERVICIOS:
+    reportes:
+      url: ${REPORTES_URL:http://localhost:8085}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 10000 # Un poco más alto por si la consulta analítica toma tiempo
+    auditoria:
+      url: ${AUDITORIA_URL:http://localhost:8086}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 5000
 
 management:
   endpoints:
