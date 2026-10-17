@@ -23,11 +23,14 @@ digitalfix:
       url: ${USUARIOS_URL:http://localhost:8081}
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 3000
-    # NUEVOS MICROSERVICIOS:
+    workorders:
+      url: ${WORKORDERS_URL:http://localhost:8083}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 5000
     reportes:
       url: ${REPORTES_URL:http://localhost:8085}
       timeout-conexion-ms: 2000
-      timeout-lectura-ms: 10000 # Un poco más alto por si la consulta analítica toma tiempo
+      timeout-lectura-ms: 10000
     auditoria:
       url: ${AUDITORIA_URL:http://localhost:8086}
       timeout-conexion-ms: 2000

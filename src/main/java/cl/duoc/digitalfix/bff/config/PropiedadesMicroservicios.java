@@ -9,6 +9,7 @@ public class PropiedadesMicroservicios {
     private Destino usuarios = new Destino();
     private Destino reportes = new Destino();
     private Destino auditoria = new Destino();
+    private Destino workorders = new Destino();
 
     public Destino getCatalogo() { return catalogo; }
     public void setCatalogo(Destino catalogo) { this.catalogo = catalogo; }
@@ -21,6 +22,9 @@ public class PropiedadesMicroservicios {
 
     public Destino getAuditoria() { return auditoria; }
     public void setAuditoria(Destino auditoria) { this.auditoria = auditoria; }
+
+    public Destino getWorkorders() { return workorders; }
+    public void setWorkorders(Destino workorders) { this.workorders = workorders; }
 
     public static class Destino {
 
