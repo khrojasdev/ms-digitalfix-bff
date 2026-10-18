@@ -35,6 +35,10 @@ digitalfix:
       url: ${AUDITORIA_URL:http://localhost:8086}
       timeout-conexion-ms: 2000
       timeout-lectura-ms: 5000
+    notify:
+      url: ${NOTIFY_URL:http://localhost:8084}
+      timeout-conexion-ms: 2000
+      timeout-lectura-ms: 5000
 
 management:
   endpoints:
