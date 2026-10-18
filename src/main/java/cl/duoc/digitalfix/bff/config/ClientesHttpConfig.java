@@ -12,40 +12,56 @@ import org.springframework.web.client.RestClient;
 /**
  * Clientes HTTP hacia los microservicios de dominio.
  *
- * Cada cliente lleva tiempo de espera explicito. Un cliente sin timeout es una
- * bomba de relojeria: si el microservicio se cuelga, el hilo del BFF se queda
- * esperando para siempre y termina cayendose el BFF entero por algo que no es
+ * Cada cliente lleva tiempo de espera explícito. Un cliente sin timeout es una
+ * bomba de relojería: si el microservicio se cuelga, el hilo del BFF se queda
+ * esperando para siempre y termina cayéndose el BFF entero por algo que no es
  * suyo.
  *
- * No se registra aqui ningun manejador de errores: el propio cliente de cada
- * microservicio decide que hacer con cada codigo.
+ * No se registra aquí ningún manejador de errores: el propio cliente de cada
+ * microservicio decide qué hacer con cada código.
  */
 @Configuration
 public class ClientesHttpConfig {
 
     /**
-     * OJO con el nombre: no puede ser "clienteCatalogo". Un metodo @Bean registra
-     * el bean con el nombre del metodo, y ya existe una clase ClienteCatalogo
+     * OJO con el nombre: no puede ser "clienteCatalogo". Un método @Bean registra
+     * el bean con el nombre del método, y ya existe una clase ClienteCatalogo
      * anotada con @Component, que registra ese mismo nombre. Spring aborta el
      * arranque antes que sobreescribir uno con el otro, y hace bien.
      */
     @Bean
     public RestClient restClientCatalogo(PropiedadesMicroservicios propiedades) {
-        PropiedadesMicroservicios.Destino destino = propiedades.getCatalogo();
-        return RestClient.builder()
-                .baseUrl(destino.getUrl())
-                .requestFactory(fabrica(destino))
-                .build();
+        return crearCliente(propiedades.getCatalogo());
     }
 
     /**
      * Cliente hacia ms-digitalfix-usuarios. Se usa para resolver la empresa de
-     * quien llama, asi que su timeout tiene que ser corto: esta llamada esta en
+     * quien llama, así que su timeout tiene que ser corto: esta llamada está en
      * el camino de TODAS las peticiones, y si se demora, todo se demora.
      */
     @Bean
     public RestClient restClientUsuarios(PropiedadesMicroservicios propiedades) {
-        PropiedadesMicroservicios.Destino destino = propiedades.getUsuarios();
+        return crearCliente(propiedades.getUsuarios());
+    }
+
+    @Bean
+    public RestClient restClientReportes(PropiedadesMicroservicios propiedades) {
+        return crearCliente(propiedades.getReportes());
+    }
+
+    @Bean
+    public RestClient restClientAuditoria(PropiedadesMicroservicios propiedades) {
+        return crearCliente(propiedades.getAuditoria());
+    }
+
+    @Bean
+    public RestClient restClientWorkorders(PropiedadesMicroservicios propiedades) {
+        return crearCliente(propiedades.getWorkorders());
+    }
+
+    // --- Métodos Auxiliares ---
+
+    private RestClient crearCliente(PropiedadesMicroservicios.Destino destino) {
         return RestClient.builder()
                 .baseUrl(destino.getUrl())
                 .requestFactory(fabrica(destino))
