@@ -59,6 +59,11 @@ public class ClientesHttpConfig {
         return crearCliente(propiedades.getWorkorders());
     }
 
+    @Bean
+    public RestClient restClientNotify(PropiedadesMicroservicios propiedades) {
+        return crearCliente(propiedades.getNotify());
+    }
+
     // --- Métodos Auxiliares ---
 
     private RestClient crearCliente(PropiedadesMicroservicios.Destino destino) {

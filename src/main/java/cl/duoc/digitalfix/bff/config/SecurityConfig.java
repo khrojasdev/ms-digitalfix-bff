@@ -54,6 +54,9 @@ public class SecurityConfig {
                         // 3. Módulos de Gestión
                         .requestMatchers("/api/dashboard/**", "/api/reports/**").hasAnyRole("ADMIN", "SUPERVISOR")
 
+                        // 3.1 Avisos (notify): lectura para quienes operan y supervisan
+                        .requestMatchers("/api/avisos/**").hasAnyRole("ADMIN", "SUPERVISOR", "AUDITOR")
+
                         // 4. Módulos Operativos.
                         // Los roles son los cuatro del caso: no existe TECNICO.
                         // Dejarlo aquí no abría nada, pero sí dejaba fuera a AUDITOR,
