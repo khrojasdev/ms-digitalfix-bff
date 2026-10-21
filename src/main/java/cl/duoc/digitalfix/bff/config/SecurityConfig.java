@@ -31,6 +31,12 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.audiences}")
     private String audience;
 
+    // Origenes permitidos para CORS, configurables por entorno. Por defecto el
+    // frontend local; en el despliegue se agrega el origen publico con la
+    // variable CORS_ALLOWED_ORIGINS (uno o varios, separados por coma).
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:4200}")
+    private String corsAllowedOrigins;
+
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
 
@@ -95,11 +101,15 @@ public class SecurityConfig {
         return jwtDecoder;
     }
 
-    // Configuración universal de CORS para desarrollo local
+    // CORS: origenes desde CORS_ALLOWED_ORIGINS (ver campo corsAllowedOrigins).
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+        configuration.setAllowedOrigins(
+                Arrays.stream(corsAllowedOrigins.split(","))
+                      .map(String::trim)
+                      .filter(origen -> !origen.isEmpty())
+                      .toList());
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
