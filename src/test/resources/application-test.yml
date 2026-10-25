@@ -4,6 +4,10 @@ digitalfix:
       url: http://localhost:9999
     usuarios:
       url: http://localhost:9999
+    auditoria:
+      url: http://localhost:9999
+    workorders:
+      url: http://localhost:9999
   contexto:
     modo-desarrollo: true
     oid-por-defecto: test-oid
