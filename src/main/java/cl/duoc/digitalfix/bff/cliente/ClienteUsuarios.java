@@ -52,6 +52,34 @@ public class ClienteUsuarios {
         return perfil;
     }
 
+    /**
+     * Consulta de solo lectura del perfil de cualquier persona (por ejemplo, el
+     * autor de un evento de auditoria).
+     *
+     * A diferencia de buscarPorOid, no da de alta a nadie si el oid no existe y
+     * no toca la cache que usa la resolucion del contexto: buscarPorOid, ante un
+     * 404, aprovisiona a quien hace la peticion con su propio token y guarda ese
+     * perfil bajo el oid consultado, lo que es correcto para el oid propio pero
+     * no para consultar a terceros.
+     */
+    public PerfilDeUsuario consultar(String oid, String tokenCrudo) {
+        try {
+            return cliente.get()
+                    .uri("/api/users/{oid}", oid)
+                    .headers(cabeceras -> autorizar(cabeceras, tokenCrudo))
+                    .retrieve()
+                    .onStatus(estado -> estado.value() == 404, (peticion, respuesta) -> {
+                        throw new SinPerfil();
+                    })
+                    .body(PerfilDeUsuario.class);
+        } catch (SinPerfil e) {
+            return null;
+        } catch (RuntimeException e) {
+            log.warn("no se pudo consultar el oid {} en usuarios: {}", oid, e.getMessage());
+            return null;
+        }
+    }
+
     private PerfilDeUsuario pedir(String oid, String tokenCrudo) {
         try {
             return cliente.get()
