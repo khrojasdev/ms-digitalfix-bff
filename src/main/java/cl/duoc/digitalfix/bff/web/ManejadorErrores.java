@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Traduce cualquier excepcion a un cuerpo de error uniforme.
@@ -47,6 +48,22 @@ public class ManejadorErrores {
                                                    HttpServletRequest peticion) {
         return ResponseEntity.badRequest()
                 .body(RespuestaError.de("solicitud_invalida", e.getMessage(),
+                                        peticion.getRequestURI()));
+    }
+
+    /**
+     * Ninguna ruta del BFF atiende esa direccion. Antes caia en el manejador
+     * generico y respondia 500 "error inesperado", lo que escondia el motivo
+     * real (por ejemplo, una imagen del BFF desplegada sin el controlador de
+     * ordenes). Ahora responde 404 y el log dice que ruta falto.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<RespuestaError> rutaInexistente(NoResourceFoundException e,
+                                                          HttpServletRequest peticion) {
+        log.warn("ninguna ruta del BFF atiende {} {}", peticion.getMethod(), peticion.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(RespuestaError.de("ruta_no_encontrada",
+                                        "La ruta solicitada no existe en el BFF.",
                                         peticion.getRequestURI()));
     }
 
