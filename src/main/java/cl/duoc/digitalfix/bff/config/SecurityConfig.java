@@ -58,6 +58,14 @@ public class SecurityConfig {
                         // 3.1 Avisos (notify): lectura para quienes operan y supervisan
                         .requestMatchers("/api/avisos/**").hasAnyRole("ADMIN", "SUPERVISOR", "AUDITOR")
 
+                        // 3.2 Ordenes de trabajo: crear es de quien opera o solicita; cambiar
+                        // el estado, de quien gestiona. AUDITOR solo lee. Sin estas reglas, la
+                        // general de abajo dejaba a AUDITOR y CLIENTE cambiar estados llamando
+                        // a la API directamente (el frontend solo esconde el boton).
+                        .requestMatchers(HttpMethod.POST, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE")
+                        .requestMatchers(HttpMethod.PUT, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
+
                         // 4. Módulos Operativos.
                         // Los roles son los cuatro del caso: no existe TECNICO.
                         // Dejarlo aquí no abría nada, pero sí dejaba fuera a AUDITOR,

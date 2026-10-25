@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -32,11 +34,64 @@ class AuthorizationMatrixTests {
                 .andExpect(status().isOk());
     }
 
+    // "Permitido" = pasa el filtro de seguridad. El microservicio no esta
+    // levantado en las pruebas, asi que la respuesta es 503 y no 401/403.
     @Test
-    void endpointAuditoria_accesoPermitidoSoloAdmin() throws Exception {
-        mockMvc.perform(get("/api/audit/logs")
+    void endpointAuditoria_accesoPermitidoAdmin() throws Exception {
+        mockMvc.perform(get("/api/audit/events")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
-                .andExpect(status().isNotFound()); // Pasa el filtro de seguridad
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void endpointAuditoria_accesoPermitidoAuditor() throws Exception {
+        mockMvc.perform(get("/api/audit/events")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void endpointAuditoria_accesoDenegadoSupervisor() throws Exception {
+        mockMvc.perform(get("/api/audit/events")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void cambiarEstadoOrden_permitidoSupervisor() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/estado").param("nuevoEstado", "ASIGNADA")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void cambiarEstadoOrden_denegadoAuditor() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/estado").param("nuevoEstado", "CERRADA")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void cambiarEstadoOrden_denegadoCliente() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/estado").param("nuevoEstado", "CERRADA")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void crearOrden_permitidoCliente() throws Exception {
+        mockMvc.perform(post("/api/workorders").contentType("application/json")
+                        .content("{\"servicioId\":1}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void crearOrden_denegadoAuditor() throws Exception {
+        mockMvc.perform(post("/api/workorders").contentType("application/json")
+                        .content("{\"servicioId\":1}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
+                .andExpect(status().isForbidden());
     }
 
     @Test
