@@ -58,6 +58,9 @@ public class SecurityConfig {
                         // ms-digitalfix-audit y que muestra el menu del frontend.
                         .requestMatchers("/api/audit/**").hasAnyRole("ADMIN", "AUDITOR")
 
+                        // 2.1 Nombres de usuario para la vista de auditoria: mismos roles.
+                        .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "AUDITOR")
+
                         // 3. Módulos de Gestión
                         .requestMatchers("/api/dashboard/**", "/api/reports/**").hasAnyRole("ADMIN", "SUPERVISOR")
 
