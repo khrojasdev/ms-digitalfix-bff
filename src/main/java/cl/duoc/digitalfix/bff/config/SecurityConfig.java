@@ -48,8 +48,9 @@ public class SecurityConfig {
                         // 1. Endpoints públicos o de salud
                         .requestMatchers("/actuator/health").permitAll()
 
-                        // 2. Módulo de Auditoría
-                        .requestMatchers("/api/audit/**").hasRole("ADMIN")
+                        // 2. Módulo de Auditoría: ADMIN y AUDITOR, igual que valida
+                        // ms-digitalfix-audit y que muestra el menu del frontend.
+                        .requestMatchers("/api/audit/**").hasAnyRole("ADMIN", "AUDITOR")
 
                         // 3. Módulos de Gestión
                         .requestMatchers("/api/dashboard/**", "/api/reports/**").hasAnyRole("ADMIN", "SUPERVISOR")
