@@ -15,6 +15,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -79,5 +83,24 @@ public class ClienteWorkorders {
         cabeceras.set(CabecerasDeContexto.OID, contexto.oid());
         cabeceras.set(CabecerasDeContexto.EMPRESA, String.valueOf(contexto.empresaId()));
         cabeceras.set(CabecerasDeContexto.ROLES, contexto.rolesComoTexto());
+        String email = correoDelToken();
+        if (StringUtils.hasText(email)) {
+            cabeceras.set(CabecerasDeContexto.EMAIL, email);
+        }
+    }
+
+    /**
+     * Correo de quien llama, tomado del token (igual que en /api/me: Entra lo
+     * manda en preferred_username y a veces en email). workorders lo usa para
+     * reconocer la ficha del TECNICO la primera vez que entra.
+     */
+    private static String correoDelToken() {
+        Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacion instanceof JwtAuthenticationToken conJwt) {
+            Jwt jwt = conJwt.getToken();
+            String preferido = jwt.getClaimAsString("preferred_username");
+            return preferido != null ? preferido : jwt.getClaimAsString("email");
+        }
+        return null;
     }
 }
