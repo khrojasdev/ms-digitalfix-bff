@@ -71,6 +71,11 @@ public class SecurityConfig {
                         // el estado, de quien gestiona. AUDITOR solo lee. Sin estas reglas, la
                         // general de abajo dejaba a AUDITOR y CLIENTE cambiar estados llamando
                         // a la API directamente (el frontend solo esconde el boton).
+                        //
+                        // Tecnicos de terreno (todas las operaciones): los gestiona quien
+                        // asigna. Va antes de las reglas por metodo para que el POST de
+                        // CLIENTE no alcance a dar de alta tecnicos.
+                        .requestMatchers("/api/workorders/tecnicos/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.POST, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE")
                         .requestMatchers(HttpMethod.PUT, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
