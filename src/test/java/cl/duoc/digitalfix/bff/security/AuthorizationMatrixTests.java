@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -75,6 +76,63 @@ class AuthorizationMatrixTests {
     void cambiarEstadoOrden_denegadoCliente() throws Exception {
         mockMvc.perform(put("/api/workorders/1/estado").param("nuevoEstado", "CERRADA")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void cambiarEstadoPorStatus_permitidoSupervisor() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/status").contentType("application/json")
+                        .content("{\"status\":\"EN_DESPLAZAMIENTO\"}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void asignarTecnico_denegadoCliente() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/asignacion").contentType("application/json")
+                        .content("{\"tecnicoId\":1}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tecnicos_listarPermitidoSupervisor() throws Exception {
+        mockMvc.perform(get("/api/workorders/tecnicos")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void tecnicos_crearPermitidoAdmin() throws Exception {
+        mockMvc.perform(post("/api/workorders/tecnicos").contentType("application/json")
+                        .content("{\"nombre\":\"Pedro\",\"email\":\"pedro@digitalfix.cl\"}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    // Sin la regla propia, el POST general de ordenes dejaba al CLIENTE crear tecnicos.
+    @Test
+    void tecnicos_crearDenegadoCliente() throws Exception {
+        mockMvc.perform(post("/api/workorders/tecnicos").contentType("application/json")
+                        .content("{\"nombre\":\"Pedro\",\"email\":\"pedro@digitalfix.cl\"}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tecnicos_listarDenegadoClienteYAuditor() throws Exception {
+        mockMvc.perform(get("/api/workorders/tecnicos")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/workorders/tecnicos")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tecnicos_desactivarDenegadoAuditor() throws Exception {
+        mockMvc.perform(delete("/api/workorders/tecnicos/1")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_AUDITOR"))))
                 .andExpect(status().isForbidden());
     }
 
