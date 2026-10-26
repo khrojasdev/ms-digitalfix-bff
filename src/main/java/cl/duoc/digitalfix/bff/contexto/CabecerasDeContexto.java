@@ -13,6 +13,8 @@ public final class CabecerasDeContexto {
     public static final String OID = "X-User-Oid";
     public static final String EMPRESA = "X-Company-Id";
     public static final String ROLES = "X-Roles";
+    /** Correo de la cuenta. Solo lo usa workorders para vincular al TECNICO con su ficha. */
+    public static final String EMAIL = "X-User-Email";
 
     private CabecerasDeContexto() {
     }

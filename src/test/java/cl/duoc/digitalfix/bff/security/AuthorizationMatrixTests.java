@@ -137,6 +137,59 @@ class AuthorizationMatrixTests {
     }
 
     @Test
+    void tecnico_veSusOrdenes() throws Exception {
+        mockMvc.perform(get("/api/workorders/mias")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void misOrdenes_soloTecnico() throws Exception {
+        mockMvc.perform(get("/api/workorders/mias")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tecnico_marcaElAvanceDeSuOrden() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/status").contentType("application/json")
+                        .content("{\"status\":\"EN_DESPLAZAMIENTO\"}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void tecnico_noAsignaNiCreaNiVeTodasLasOrdenes() throws Exception {
+        mockMvc.perform(put("/api/workorders/1/asignacion").contentType("application/json")
+                        .content("{\"tecnicoId\":1}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/workorders").contentType("application/json")
+                        .content("{\"servicioId\":1}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/workorders")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/workorders/tecnicos")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void tecnico_leeServiciosPeroNoRepuestos() throws Exception {
+        mockMvc.perform(get("/api/catalog/services")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isServiceUnavailable());
+        mockMvc.perform(get("/api/repuestos")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/catalog/services").contentType("application/json").content("{}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void crearOrden_permitidoCliente() throws Exception {
         mockMvc.perform(post("/api/workorders").contentType("application/json")
                         .content("{\"servicioId\":1}")

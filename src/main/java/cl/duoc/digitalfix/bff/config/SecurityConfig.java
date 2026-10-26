@@ -76,14 +76,21 @@ public class SecurityConfig {
                         // asigna. Va antes de las reglas por metodo para que el POST de
                         // CLIENTE no alcance a dar de alta tecnicos.
                         .requestMatchers("/api/workorders/tecnicos/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        //
+                        // TECNICO: ve sus ordenes y marca el avance en terreno. El
+                        // microservicio revisa ademas que la orden sea suya y que no
+                        // la cancele.
+                        .requestMatchers(HttpMethod.GET, "/api/workorders/mias").hasRole("TECNICO")
+                        .requestMatchers(HttpMethod.PUT, "/api/workorders/*/status").hasAnyRole("ADMIN", "SUPERVISOR", "TECNICO")
                         .requestMatchers(HttpMethod.POST, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE")
                         .requestMatchers(HttpMethod.PUT, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
 
                         // 4. Módulos Operativos.
-                        // Los roles son los cuatro del caso: no existe TECNICO.
-                        // Dejarlo aquí no abría nada, pero sí dejaba fuera a AUDITOR,
-                        // que necesita leer el catálogo para revisar órdenes.
+                        // El TECNICO solo lee los servicios del catálogo (para ver qué
+                        // trabajo es cada orden); no entra a repuestos ni al resto.
+                        .requestMatchers(HttpMethod.GET, "/api/catalog/services", "/api/catalog/services/**")
+                                .hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR", "TECNICO")
                         .requestMatchers("/api/catalog/**", "/api/repuestos/**", "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR")
 
                         // 5. Fallback
