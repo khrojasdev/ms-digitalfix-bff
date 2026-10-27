@@ -116,6 +116,21 @@ public class ClienteUsuarios {
         }
     }
 
+    /**
+     * Pone al dia el perfil de quien inicia sesion con lo que trae su token
+     * (rol del tenant, nombre y correo) llamando a POST /api/users/login, y
+     * deja el resultado en la cache. Asi un rol asignado en el tenant no hay
+     * que volver a asignarlo a mano en la base. Si usuarios no responde,
+     * devuelve null y se sigue con lo que habia.
+     */
+    public PerfilDeUsuario sincronizar(String oid, String tokenCrudo) {
+        PerfilDeUsuario perfil = autoAprovisionar(oid, tokenCrudo);
+        if (perfil != null) {
+            cache.put(oid, new Entrada(perfil, Instant.now().plus(VIGENCIA)));
+        }
+        return perfil;
+    }
+
     private void autorizar(HttpHeaders cabeceras, String tokenCrudo) {
         if (tokenCrudo != null && !tokenCrudo.isBlank()) {
             cabeceras.set(HttpHeaders.AUTHORIZATION, "Bearer " + tokenCrudo);

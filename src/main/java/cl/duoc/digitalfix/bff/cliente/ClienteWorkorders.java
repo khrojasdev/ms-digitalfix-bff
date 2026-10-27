@@ -1,5 +1,7 @@
 package cl.duoc.digitalfix.bff.cliente;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import cl.duoc.digitalfix.bff.contexto.CabecerasDeContexto;
@@ -87,6 +89,18 @@ public class ClienteWorkorders {
         if (StringUtils.hasText(email)) {
             cabeceras.set(CabecerasDeContexto.EMAIL, email);
         }
+        String nombre = claimDelToken("name");
+        if (StringUtils.hasText(nombre)) {
+            cabeceras.set(CabecerasDeContexto.NOMBRE, URLEncoder.encode(nombre.trim(), StandardCharsets.UTF_8));
+        }
+    }
+
+    private static String claimDelToken(String claim) {
+        Authentication autenticacion = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacion instanceof JwtAuthenticationToken conJwt) {
+            return conJwt.getToken().getClaimAsString(claim);
+        }
+        return null;
     }
 
     /**
