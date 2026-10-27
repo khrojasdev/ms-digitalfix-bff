@@ -70,6 +70,8 @@ public class ClientesHttpConfig {
         return RestClient.builder()
                 .baseUrl(destino.getUrl())
                 .requestFactory(fabrica(destino))
+                // Cada llamada lleva el X-Correlation-Id de la peticion original.
+                .requestInterceptor(new CorrelacionSaliente())
                 .build();
     }
 
