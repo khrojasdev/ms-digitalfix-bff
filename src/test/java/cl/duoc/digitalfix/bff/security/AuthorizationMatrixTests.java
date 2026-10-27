@@ -177,6 +177,20 @@ class AuthorizationMatrixTests {
     }
 
     @Test
+    void tecnico_veElDetalleDeUnaOrden() throws Exception {
+        mockMvc.perform(get("/api/workorders/5")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    void cliente_veElDetalleDeUnaOrden() throws Exception {
+        mockMvc.perform(get("/api/workorders/5")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CLIENTE"))))
+                .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
     void tecnico_leeServiciosPeroNoRepuestos() throws Exception {
         mockMvc.perform(get("/api/catalog/services")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_TECNICO"))))

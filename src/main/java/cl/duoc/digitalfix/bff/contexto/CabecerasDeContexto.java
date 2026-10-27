@@ -15,6 +15,8 @@ public final class CabecerasDeContexto {
     public static final String ROLES = "X-Roles";
     /** Correo de la cuenta. Solo lo usa workorders para vincular al TECNICO con su ficha. */
     public static final String EMAIL = "X-User-Email";
+    /** Nombre de la cuenta, codificado como en una URL (UTF-8) por las tildes. Lo usa workorders. */
+    public static final String NOMBRE = "X-User-Name";
 
     private CabecerasDeContexto() {
     }

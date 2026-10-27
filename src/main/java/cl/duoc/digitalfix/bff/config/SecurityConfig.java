@@ -82,6 +82,9 @@ public class SecurityConfig {
                         // la cancele.
                         .requestMatchers(HttpMethod.GET, "/api/workorders/mias").hasRole("TECNICO")
                         .requestMatchers(HttpMethod.PUT, "/api/workorders/*/status").hasAnyRole("ADMIN", "SUPERVISOR", "TECNICO")
+                        // Detalle de una orden: el TECNICO tambien (workorders solo le
+                        // muestra las suyas). El listado completo sigue cerrado para el.
+                        .requestMatchers(HttpMethod.GET, "/api/workorders/*").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR", "TECNICO")
                         .requestMatchers(HttpMethod.POST, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR", "CLIENTE")
                         .requestMatchers(HttpMethod.PUT, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/workorders/**").hasAnyRole("ADMIN", "SUPERVISOR")
